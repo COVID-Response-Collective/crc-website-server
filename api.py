@@ -13,7 +13,7 @@ This endpoint is used to test that the server is up and running.
 '''
 class Test(Resource):
     def get(self):
-        return {'msg': '[SUCCESS] The Test endpoint is up and running!'}
+        return {'msg': '[SUCCESS] The server is up and running!'}
 
 '''
 RECCHANNEL ENDPOINT
@@ -42,10 +42,44 @@ class RecChannel(Resource):
                     else:
                         recommendedChannels[ch['name']] = ch['weight']
             except Exception:
-                return {'msg': '[ERROR] There was an error parsing the questionnaire responses.'}
+                returned_data = {'msg': '[ERROR] There was an error parsing the questionnaire responses.'}
+                return 
+        returned_data = {
+            'msg': '[SUCCESS] Returned recommended channels.',
+            'channels': recommendedChannels.keys()
+        }
+        return json.dumps(returned_data), 201
+
+'''
+CREATEREQUEST ENDPOINT
+***
+This endpoint reads in a resource request and creates a record for
+the request in the database, officially opening the request..
+'''
+class CreateRequest(Resource):
+    def get(self):
+        return {'msg': '[SUCCESS] This endpoint is up and running!'}
+
+    def post(self):
+        return {'msg': '[SUCCESS] The request has been recorded!'}
+
+'''
+FULFILLREQUEST ENDPOINT
+***
+This endpoint reads in the ID of a resource request and marks it
+as fulfilled, officially closing the request..
+'''
+class FulfillRequest(Resource):
+    def get(self):
+        return {'msg': '[SUCCESS] This endpoint is up and running!'}
+
+    def post(self):
+        return {'msg': '[SUCCESS] The request has been fulfilled!'}
 
 api.add_resource(Test, '/')
-api.add_resource(RecChannel, '/recchannel')
+api.add_resource(RecChannel, '/connect/rec-channel')
+api.add_resource(CreateRequest, '/request/create')
+api.add_resource(FulfillRequest, '/request/fulfill')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
