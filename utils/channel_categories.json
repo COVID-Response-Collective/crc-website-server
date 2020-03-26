@@ -1,0 +1,53 @@
+{
+  "categories": {
+    "welcome": [
+      "introductions",
+      "skillsets",
+      "health-status",
+      "questions",
+      "suggestions-and-ideas",
+      "shoutouts"
+    ],
+    "news_updates": [
+      "northwest-news-updates",
+      "national-news-updates",
+      "global-news-updates",
+      "scientific-research",
+      "other-covid-news",
+      "ask-a-bot"
+    ],
+    "organizing": [
+      "supplies-and-recipes",
+      "tangible-actions",
+      "medical-advice",
+      "money-redistribution",
+      "general-advice",
+      "dev-squad",
+      "digital-content-creation",
+      "resource-distribution",
+      "organizing-the-people",
+      "non-profit-legal",
+      "video-editing"
+    ],
+    "social": [
+      "pets",
+      "mental-health-check-in",
+      "chit-chat",
+      "party-planning-committee",
+      "memes"
+    ],
+    "geography": [
+      "albany-corvallis-philomath",
+      "portland-metro-vancouver",
+      "eugene",
+      "salem",
+      "deschutes-county",
+      "wasco-and-hood-river-county",
+      "polk-and-yamhill-county",
+      "medford-and-ashland",
+      "king-county",
+      "spokane",
+      "wallowa-county"
+    ]
+  }
+}
