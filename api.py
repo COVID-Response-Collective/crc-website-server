@@ -2,7 +2,8 @@ from flask import Flask
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import json
-import database
+from datetime import datetime
+from database import Database, Role, Status
 
 app = Flask(__name__)
 CORS(app)
@@ -63,7 +64,34 @@ class CreateRequest(Resource):
         return {'msg': '[SUCCESS] This endpoint is up and running!'}
 
     def post(self):
-        return {'msg': '[SUCCESS] The request has been recorded!'}
+        name = request.form.get('name')
+        roleValue = request.form.get('role')
+        email = request.form.get('email')
+        phoneValue = request.form.get('phone')
+        req = request.form.get('request')
+
+        if email == '':
+            email = None
+        if phoneValue == '':
+            phone = None
+        else:
+            phone = phoneValue
+        if roleValue == 1:
+            role = Role.COMM
+        else:
+            role = Role.EMAUTH
+        status = Status.OPEN
+        dateOpened = datetime.now()
+
+        db = Database()
+        db.cursor.execute("INSERT INTO requests (name, role, email, phone, request, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING rID", (name, role, email, phone, req, status, dateOpened))
+        db.conn.commit()
+        
+        results = db.cursor.fetchall()
+        for row in results:
+            rID = row.pop()
+            print("New request ID: %s" % (rID))
+        return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % rID}
 
 '''
 FULFILLREQUEST ENDPOINT
@@ -76,7 +104,11 @@ class FulfillRequest(Resource):
         return {'msg': '[SUCCESS] This endpoint is up and running!'}
 
     def post(self):
-        return {'msg': '[SUCCESS] The request has been fulfilled!'}
+        rID = int(request.form.get('rID'))
+        db = Database()
+        db.cursor.execute("UPDATE requests SET status = %s, dateFulfilled = %s WHERE rID = %s", (Status.FULFILLED, datetime.now(), rID))
+        db.conn.commit()
+        return {'msg': '[SUCCESS] The request with rID = %s has been fulfilled!' %s rID}
 
 api.add_resource(Test, '/')
 api.add_resource(RecChannel, '/connect/rec-channel')
