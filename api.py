@@ -3,11 +3,19 @@ from flask_restful import Resource, Api
 from flask_cors import CORS
 import json
 from datetime import datetime
+import discord
 from database import Database, Role, Status
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+
+client = discord.Client()
+with open('utils/config.json') as f:
+    config = json.load(f)
+
+channel = client.get_channel(config['channels']['test'])
+
 
 '''
 TEST ENDPOINT
@@ -56,7 +64,7 @@ class RecChannel(Resource):
 '''
 CREATEREQUEST ENDPOINT
 ***
-This endpoint reads in a resource request and creates a record for
+This endpoint rea½g½gds in a resource request and creates a record for
 the request in the database, officially opening the request..
 '''
 class CreateRequest(Resource):
@@ -72,14 +80,17 @@ class CreateRequest(Resource):
 
         if email == '':
             email = None
+        
         if phoneValue == '':
             phone = None
         else:
             phone = phoneValue
+        
         if roleValue == 1:
             role = Role.COMM
         else:
             role = Role.EMAUTH
+        
         status = Status.OPEN
         dateOpened = datetime.now()
 
@@ -91,6 +102,15 @@ class CreateRequest(Resource):
         for row in results:
             rID = row.pop()
             print("New request ID: %s" % (rID))
+        
+        message = 'New Incoming Resource Request: ID = #{rID}:\n'.format(rID = rID)
+        message += 'NAME: {nm}\n'.format(nm = name)
+        message += 'ROLE: {ro}\n\n'.format(ro = 'Community Member' if role == Role.COMM else 'Emergency Authority')
+        message += 'REQUEST: {re}\n\n'.format(re = req)
+        message += 'EMAIL: {ea}\n'.format(ea = email if email is not None else 'N/A')
+        message += 'PHONE: {ph}'.format(ph = phone if phone is not None else 'N/A')
+        channel.send(message)
+
         return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % (rID)}
 
 '''
@@ -116,4 +136,5 @@ api.add_resource(CreateRequest, '/request/create')
 api.add_resource(FulfillRequest, '/request/fulfill')
 
 if __name__ == '__main__':
+    client.run(config['json'])
     app.run(debug=True, host='0.0.0.0')
