@@ -91,7 +91,7 @@ class CreateRequest(Resource):
         for row in results:
             rID = row.pop()
             print("New request ID: %s" % (rID))
-        return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % rID}
+        return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % (rID)}
 
 '''
 FULFILLREQUEST ENDPOINT
@@ -108,7 +108,7 @@ class FulfillRequest(Resource):
         db = Database()
         db.cursor.execute("UPDATE requests SET status = %s, dateFulfilled = %s WHERE rID = %s", (Status.FULFILLED, datetime.now(), rID))
         db.conn.commit()
-        return {'msg': '[SUCCESS] The request with rID = %s has been fulfilled!' %s rID}
+        return {'msg': '[SUCCESS] The request with rID = %s has been fulfilled!' %s (rID)}
 
 api.add_resource(Test, '/')
 api.add_resource(RecChannel, '/connect/rec-channel')
