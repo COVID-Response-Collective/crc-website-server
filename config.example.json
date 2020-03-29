@@ -1,3 +1,8 @@
 {
-  "postgres_pw": "password"
+  "postgres_pw": "password",
+  "discord_token": "[DISCORD BOT TOKEN]",
+  "discord_channels": {
+    "live": "[LIVE CHANNEL ID]",
+    "test": "[TEST CHANNEL ID]"
+  }
 }

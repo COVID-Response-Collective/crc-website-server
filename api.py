@@ -11,7 +11,7 @@ CORS(app)
 api = Api(app)
 
 client = discord.Client()
-with open('utils/config.json') as f:
+with open('config.json') as f:
     config = json.load(f)
 
 channel = client.get_channel(config['channels']['test'])
