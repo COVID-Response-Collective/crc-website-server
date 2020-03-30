@@ -3,19 +3,12 @@ from flask_restful import Resource, Api
 from flask_cors import CORS
 import json
 from datetime import datetime
-import discord
-from database import Database, Role, Status
+from database import Database, Region, Role, RequestType, Status
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
-
-client = discord.Client()
-with open('config.json') as f:
-    config = json.load(f)
-
-channel = client.get_channel(config['channels']['test'])
-
+db = Database()
 
 '''
 TEST ENDPOINT
@@ -64,7 +57,7 @@ class RecChannel(Resource):
 '''
 CREATEREQUEST ENDPOINT
 ***
-This endpoint rea½g½gds in a resource request and creates a record for
+This endpoint reads in a resource request and creates a record for
 the request in the database, officially opening the request..
 '''
 class CreateRequest(Resource):
@@ -73,29 +66,31 @@ class CreateRequest(Resource):
 
     def post(self):
         name = request.form.get('name')
+        regionValue = request.form.get('region')
         roleValue = request.form.get('role')
         email = request.form.get('email')
-        phoneValue = request.form.get('phone')
-        req = request.form.get('request')
+        phone = request.form.get('phone')
+        requestTypeValue = request.form.get('request_type')
+        details = request.form.get('details')
+
+        regions = [e for e in Region]
+        roles = [e for e in Role]
+        requestTypes = [e for e in RequestType]
 
         if email == '':
             email = None
         
-        if phoneValue == '':
+        if phone == '':
             phone = None
-        else:
-            phone = phoneValue
-        
-        if roleValue == 1:
-            role = Role.COMM
-        else:
-            role = Role.EMAUTH
+
+        region = regions[regionValue-1]
+        role = roles[roleValue-1]
+        requestType = requestTypes[requestTypeValue-1]
         
         status = Status.OPEN
         dateOpened = datetime.now()
 
-        db = Database()
-        db.cursor.execute("INSERT INTO requests (name, role, email, phone, request, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING rID", (name, role, email, phone, req, status, dateOpened))
+        db.cursor.execute("INSERT INTO request (name, region, role, email, phone, request_type, details, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING rID", (name, region, role, email, phone, requestType, details, status, dateOpened))
         db.conn.commit()
         
         results = db.cursor.fetchall()
@@ -103,21 +98,60 @@ class CreateRequest(Resource):
             rID = row.pop()
             print("New request ID: %s" % (rID))
         
-        message = 'New Incoming Resource Request: ID = #{rID}:\n'.format(rID = rID)
-        message += 'NAME: {nm}\n'.format(nm = name)
-        message += 'ROLE: {ro}\n\n'.format(ro = 'Community Member' if role == Role.COMM else 'Emergency Authority')
-        message += 'REQUEST: {re}\n\n'.format(re = req)
-        message += 'EMAIL: {ea}\n'.format(ea = email if email is not None else 'N/A')
-        message += 'PHONE: {ph}'.format(ph = phone if phone is not None else 'N/A')
-        channel.send(message)
-
         return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % (rID)}
+
+'''
+ADDVOLUNTEERTOREQUEST ENDPOINT
+***
+This endpoint reads in the ID of a resource request and the name
+of a volunteer who has decided to take on the request, and adds
+their name to the list of volunteers taking on the request.
+'''
+class AddVolunteerToRequest(Resource):
+    def get(self):
+        return {'msg': '[SUCCESS] This endpoint is up and running!'}
+
+    def post(self):
+        rID = int(request.form.get('rID'))
+        name = request.form.get('name')
+        db.cursor.execute("SELECT volunteers FROM requests WHERE rID = %s", (rID))
+        db.conn.commit()
+        results = db.cursor.fetchall()
+        for row in results:
+            volunteers = row.pop()
+            if volunteers is None:
+                volunteers = ''
+            else:
+                volunteers = volunteers[1:-1]
+        volunteerList = volunteers.split(', ')
+        volunteerList.append(name)
+        volunteers = ''.join(', ')
+        db.cursor.execute("UPDATE requests SET volunteers = %s WHERE rID = %s", (volunteers, rID))
+        db.conn.commit()
+        return {'msg': '[SUCCESS] Added %s to the list of volunteers for the request with rID = %s' % (name, rID)}
+
+
+'''
+STARTREQUEST ENDPOINT
+***
+This endpoint reads in the ID of a resource request and marks it
+as started, changing the status of the request to "in progress."
+'''
+class StartRequest(Resource):
+    def get(self):
+        return {'msg': '[SUCCESS] This endpoint is up and running!'}
+
+    def post(self):
+        rID = int(request.form.get('rID'))
+        db.cursor.execute("UPDATE requests SET status = %s, dateStarted = %s WHERE rID = %s", (Status.IN_PROGRESS, datetime.now(), rID))
+        db.conn.commit()
+        return {'msg': '[SUCCESS] The request with rID = %s has been started!' %s (rID)}
 
 '''
 FULFILLREQUEST ENDPOINT
 ***
 This endpoint reads in the ID of a resource request and marks it
-as fulfilled, officially closing the request..
+as fulfilled, officially closing the request.
 '''
 class FulfillRequest(Resource):
     def get(self):
@@ -125,16 +159,16 @@ class FulfillRequest(Resource):
 
     def post(self):
         rID = int(request.form.get('rID'))
-        db = Database()
         db.cursor.execute("UPDATE requests SET status = %s, dateFulfilled = %s WHERE rID = %s", (Status.FULFILLED, datetime.now(), rID))
         db.conn.commit()
         return {'msg': '[SUCCESS] The request with rID = %s has been fulfilled!' %s (rID)}
 
-api.add_resource(Test, '/')
+api.add_resource(Test, '/test')
 api.add_resource(RecChannel, '/connect/rec-channel')
 api.add_resource(CreateRequest, '/request/create')
+api.add_resource(AddVolunteerToRequest, '/request/add-volunteer')
+api.add_resource(StartRequest, '/request/start')
 api.add_resource(FulfillRequest, '/request/fulfill')
 
 if __name__ == '__main__':
-    client.run(config['json'])
     app.run(debug=True, host='0.0.0.0')
