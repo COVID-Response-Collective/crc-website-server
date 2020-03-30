@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Role(enum.Enum):
     COMM = 'COMM MEMBER'
-    EMAUTH = 'EM AUTH'
+    EMPROF = 'EM PROF'
 
 class Status(enum.Enum):
     OPEN = 'OPEN'
@@ -33,6 +33,16 @@ class RequestType(enum.Enum):
     PETS = 'PETS'
     OTHER = 'OTHER'
 
+class InHomeCareType(enum.Enum):
+    BABYSITTING = 'BABYSITTING',
+    ELDERCARE = 'ELDERCARE',
+    HOUSEKEEPING = 'HOUSEKEEPING',
+    OTHER = 'OTHER'
+
+class Frequency(enum.Enum):
+    ONETIME = 'ONETIME',
+    RECURRING = 'RECURRING'
+
 class Database:
     def __init__(self):
         with open('config.json') as f:
@@ -46,7 +56,7 @@ def initEnums():
     db.cursor.execute("DROP TYPE IF EXISTS status_type")
     db.cursor.execute("DROP TYPE IF EXISTS region_type")
     db.cursor.execute("DROP TYPE IF EXISTS request_category")
-    db.cursor.execute("CREATE TYPE role_type AS ENUM ('COMM MEMBER', 'EM AUTH')")
+    db.cursor.execute("CREATE TYPE role_type AS ENUM ('COMM MEMBER', 'EM PROF')")
     db.cursor.execute("CREATE TYPE status_type AS ENUM ('OPEN', 'IN PROGRESS', 'FULFILLED')")
     db.cursor.execute("CREATE TYPE region_type AS ENUM ('ALBANY_CORVALLIS_PHILOMATH', 'PORTLAND_METRO', 'EUGENE', 'SALEM', 'DESCHUTES COUNTY', 'WASCO HOOD RIVER COUNTY', 'POLK YAMHILL COUNTY', 'MEDFORD ASHLAND', 'KING COUNTY', 'SPOKANE', 'WALLOWA')")
 

@@ -83,9 +83,9 @@ class CreateRequest(Resource):
         if phone == '':
             phone = None
 
-        region = regions[regionValue-1]
-        role = roles[roleValue-1]
-        requestType = requestTypes[requestTypeValue-1]
+        region = [r for r in regions if r == regionValue].pop()
+        role = [r for r in roles if r == roleValue].pop()
+        requestType = [r for r in requestTypes if r == requestTypeValue].pop()
         
         status = Status.OPEN
         dateOpened = datetime.now()
