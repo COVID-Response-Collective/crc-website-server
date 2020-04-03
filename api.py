@@ -2,10 +2,13 @@ from flask import Flask
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import json
+from datetime import datetime
+from database import Database, Region, Role, RequestType, Status
 
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
+db = Database()
 
 '''
 TEST ENDPOINT
@@ -62,24 +65,109 @@ class CreateRequest(Resource):
         return {'msg': '[SUCCESS] This endpoint is up and running!'}
 
     def post(self):
-        return {'msg': '[SUCCESS] The request has been recorded!'}
+        name = request.form.get('name')
+        regionValue = request.form.get('region')
+        roleValue = request.form.get('role')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        requestTypeValue = request.form.get('request_type')
+        details = request.form.get('details')
+
+        regions = [e for e in Region]
+        roles = [e for e in Role]
+        requestTypes = [e for e in RequestType]
+
+        if email == '':
+            email = None
+        
+        if phone == '':
+            phone = None
+
+        region = [r for r in regions if r == regionValue].pop()
+        role = [r for r in roles if r == roleValue].pop()
+        requestType = [r for r in requestTypes if r == requestTypeValue].pop()
+        
+        status = Status.OPEN
+        dateOpened = datetime.now()
+
+        db.cursor.execute("INSERT INTO request (name, region, role, email, phone, request_type, details, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING rID", (name, region, role, email, phone, requestType, details, status, dateOpened))
+        db.conn.commit()
+        
+        results = db.cursor.fetchall()
+        for row in results:
+            rID = row.pop()
+            print("New request ID: %s" % (rID))
+        
+        return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % (rID)}
+
+'''
+ADDVOLUNTEERTOREQUEST ENDPOINT
+***
+This endpoint reads in the ID of a resource request and the name
+of a volunteer who has decided to take on the request, and adds
+their name to the list of volunteers taking on the request.
+'''
+class AddVolunteerToRequest(Resource):
+    def get(self):
+        return {'msg': '[SUCCESS] This endpoint is up and running!'}
+
+    def post(self):
+        rID = int(request.form.get('rID'))
+        name = request.form.get('name')
+        db.cursor.execute("SELECT volunteers FROM requests WHERE rID = %s", (rID))
+        db.conn.commit()
+        results = db.cursor.fetchall()
+        for row in results:
+            volunteers = row.pop()
+            if volunteers is None:
+                volunteers = ''
+            else:
+                volunteers = volunteers[1:-1]
+        volunteerList = volunteers.split(', ')
+        volunteerList.append(name)
+        volunteers = ''.join(', ')
+        db.cursor.execute("UPDATE requests SET volunteers = %s WHERE rID = %s", (volunteers, rID))
+        db.conn.commit()
+        return {'msg': '[SUCCESS] Added %s to the list of volunteers for the request with rID = %s' % (name, rID)}
+
+
+'''
+STARTREQUEST ENDPOINT
+***
+This endpoint reads in the ID of a resource request and marks it
+as started, changing the status of the request to "in progress."
+'''
+class StartRequest(Resource):
+    def get(self):
+        return {'msg': '[SUCCESS] This endpoint is up and running!'}
+
+    def post(self):
+        rID = int(request.form.get('rID'))
+        db.cursor.execute("UPDATE requests SET status = %s, dateStarted = %s WHERE rID = %s", (Status.IN_PROGRESS, datetime.now(), rID))
+        db.conn.commit()
+        return {'msg': '[SUCCESS] The request with rID = %s has been started!' %s (rID)}
 
 '''
 FULFILLREQUEST ENDPOINT
 ***
 This endpoint reads in the ID of a resource request and marks it
-as fulfilled, officially closing the request..
+as fulfilled, officially closing the request.
 '''
 class FulfillRequest(Resource):
     def get(self):
         return {'msg': '[SUCCESS] This endpoint is up and running!'}
 
     def post(self):
-        return {'msg': '[SUCCESS] The request has been fulfilled!'}
+        rID = int(request.form.get('rID'))
+        db.cursor.execute("UPDATE requests SET status = %s, dateFulfilled = %s WHERE rID = %s", (Status.FULFILLED, datetime.now(), rID))
+        db.conn.commit()
+        return {'msg': '[SUCCESS] The request with rID = %s has been fulfilled!' %s (rID)}
 
-api.add_resource(Test, '/')
+api.add_resource(Test, '/test')
 api.add_resource(RecChannel, '/connect/rec-channel')
 api.add_resource(CreateRequest, '/request/create')
+api.add_resource(AddVolunteerToRequest, '/request/add-volunteer')
+api.add_resource(StartRequest, '/request/start')
 api.add_resource(FulfillRequest, '/request/fulfill')
 
 if __name__ == '__main__':
