@@ -11,6 +11,8 @@ class Status(enum.Enum):
     OPEN = 'OPEN'
     IN_PROGRESS = 'IN PROGRESS'
     FULFILLED = 'FULFILLED'
+    CLOSED = 'CLOSED'
+    CANCELLED = 'CANCELLED'
 
 class Region(enum.Enum):
     CORVALLIS = 'ALBANY CORVALLIS PHILOMATH'
@@ -62,12 +64,12 @@ def initEnums():
 
     db.cursor.execute("CREATE TYPE request_category AS ENUM ('GROCERY', 'PROJECT', 'FUNDS', 'IN HOME', 'PETS', 'OTHER')")
     db.conn.commit()
-    
+
 def initDB():
     db = Database()
     db.cursor.execute("DROP TABLE IF EXISTS requests")
     db.cursor.execute("SET timezone = 'America/Los_Angeles'")
-    db.cursor.execute("CREATE TABLE requests (rID SERIAL NOT NULL, name VARCHAR(64) NOT NULL, region region_type NOT NULL, role role_type NOT NULL, title VARCHAR(64), agency VARCHAR(128), jurisdiction VARCHAR(128), email VARCHAR(64), phone VARCHAR(32), request_type request_category NOT NULL, details TEXT NOT NULL, status status_type NOT NULL, dateOpened TIMESTAMPTZ NOT NULL, dateStarted TIMESTAMPTZ NOT NULL, dateFulfilled TIMESTAMPTZ NOT NULL, volunteers TEXT NOT NULL, PRIMARY KEY (rID))")
+    db.cursor.execute("CREATE TABLE requests (rID SERIAL NOT NULL, name VARCHAR(64) NOT NULL, region region_type NOT NULL, role role_type NOT NULL, title VARCHAR(64), agency VARCHAR(128), jurisdiction VARCHAR(128), email VARCHAR(64), phone VARCHAR(32), request_type request_category NOT NULL, details TEXT NOT NULL, neededBy TIMESTAMPTZ, public BIT NOT NULL, status status_type NOT NULL, dateOpened TIMESTAMPTZ NOT NULL, dateStarted TIMESTAMPTZ, dateFulfilled TIMESTAMPTZ, volunteers TEXT NOT NULL, PRIMARY KEY (rID))")
     db.conn.commit()
     return db
 
@@ -75,13 +77,13 @@ def initTest():
     db = Database()
     db.cursor.execute("DROP TABLE IF EXISTS test")
     db.cursor.execute("SET timezone = 'America/Los_Angeles'")
-    db.cursor.execute("CREATE TABLE test (rID SERIAL NOT NULL, name VARCHAR(64) NOT NULL, region region_type NOT NULL, role role_type NOT NULL, title VARCHAR(64), agency VARCHAR(128), jurisdiction VARCHAR(128), email VARCHAR(64), phone VARCHAR(32), request_type request_category NOT NULL, details TEXT NOT NULL, status status_type NOT NULL, dateOpened TIMESTAMPTZ NOT NULL, dateStarted TIMESTAMPTZ, dateFulfilled TIMESTAMPTZ, volunteers TEXT, PRIMARY KEY (rID))")
+    db.cursor.execute("CREATE TABLE test (rID SERIAL NOT NULL, name VARCHAR(64) NOT NULL, region region_type NOT NULL, role role_type NOT NULL, title VARCHAR(64), agency VARCHAR(128), jurisdiction VARCHAR(128), email VARCHAR(64), phone VARCHAR(32), request_type request_category NOT NULL, details TEXT NOT NULL, neededBy TIMESTAMPTZ, public BIT NOT NULL, status status_type NOT NULL, dateOpened TIMESTAMPTZ NOT NULL, dateStarted TIMESTAMPTZ, dateFulfilled TIMESTAMPTZ, volunteers TEXT NOT NULL, PRIMARY KEY (rID))")
     db.conn.commit()
     return db
 
 def test():
-    db = Database() 
-    
+    db = Database()
+
     name = 'test'
     region = Region.EUGENE
     role = Role.COMM
@@ -92,10 +94,10 @@ def test():
     details = json.dumps(detailsJSON)
     status = Status.OPEN
     dateOpened = datetime.now()
-    
+
     db.cursor.execute("INSERT INTO test (name, region, role, email, phone, request_type, details, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING rID", (name, region, role, email, phone, request_type, details, status, dateOpened))
     db.conn.commit()
-        
+
     results = db.cursor.fetchall()
     for row in results:
         print("New request ID: %s" % (row))
@@ -110,4 +112,3 @@ def test():
     results = db.cursor.fetchall()
     for row in results:
         print(row)
-
