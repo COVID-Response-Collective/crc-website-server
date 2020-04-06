@@ -2,52 +2,159 @@
 import { jsx } from '@emotion/core'
 import {useState} from 'react'
 //import { Grid, TextField, Button } from '@material-ui/core'
-import { Button, Form, Row, Col, InputGroup } from 'react-bootstrap';
+import { Alert, Button, Form, Row, Col, InputGroup } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
+import axios from 'axios';
 
 const App = () => {
   const [name, setName] = useState('')
+  const [isValidName, setIsValidName] = useState(true)
   const [email, setEmail] = useState('')
+  const [isValidEmail, setIsValidEmail] = useState(true)
   const [phone, setPhone] = useState('')
+  const [isValidPhone, setIsValidPhone] = useState(true)
   const [role, setRole] = useState('')
-  const [title, setTitle] = useState('')
-  const [agency, setAgency] = useState('')
-  const [jurisdiction, setJurisdiction] = useState('')
+  const [isValidRole, setIsValidRole] = useState(true)
   const [type, setType] = useState('')
+  const [isValidType, setIsValidType] = useState(true)
+
+  /* Emergency Professional-Specific Fields */
+  const [title, setTitle] = useState('')
+  const [isValidTitle, setIsValidTitle] = useState(true)
+  const [agency, setAgency] = useState('')
+  const [isValidAgency, setIsValidAgency] = useState(true)
+  const [jurisdiction, setJurisdiction] = useState('')
+  const [isValidJurisdiction, setIsValidJurisdiction] = useState(true)
 
   /* Grocery-Specific Fields */
   const [items, setItems] = useState('')
+  const [isValidItems, setIsValidItems] = useState(true)
   const [allergies, setAllergies] = useState('')
 
   /* Funds-Specific Fields */
   const [amount, setAmount] = useState(0.00)
+  const [isValidAmount, setIsValidAmount] = useState(true)
   const [reason, setReason] = useState('')
+  const [isValidReason, setIsValidReason] = useState(true)
 
   /* In-Home Services-Specific Fields */
   const [inHomeType, setInHomeType] = useState('')
+  const [isValidInHomeType, setIsValidInHomeType] = useState(true)
 
   /* Used By Both In-Home Services and Pet Services */
   const [frequency, setFrequency] = useState('ONE TIME')
 
   /* Used By In-Home Services, Pet Services, and Other */
   const [description, setDescription] = useState('')
+  const [isValidDescription, setIsValidDescription] = useState(true)
 
   /* Universal Fields */
   const [isNeededBy, setIsNeededBy] = useState(false)
   const [neededByDate, setNeededByDate] = useState(new Date())
+  const [isValidIsNeededByDate, setIsValidNeededByDate] = useState(true)
   const [isPublic, setIsPublic] = useState(true)
   const [additionalInfo, setAdditionalInfo] = useState('')
 
   const [validated, setValidated] = useState(false);
+  const [validForm, setValidForm] = useState(true);
 
-  const handleSubmit = (e) => {
+  const isValid = () => {
+    if (name === '' || email === '' || role === '' || type === '') {
+      setIsValidName(name !== '')
+      setIsValidEmail(email !== '')
+      setIsValidRole(role !== '')
+      setIsValidType(type !== '')
+      return false;
+    }
+    if (role === 'EM PROF' && (title === '' || agency === '' || jurisdiction === '')) {
+      setIsValidTitle(title !== '')
+      setIsValidAgency(agency !== '')
+      setIsValidJurisdiction(jurisdiction !== '')
+      return false;
+    }
+    if (type === 'GROCERY' && items === '') {
+      setIsValidItems(items !== '')
+      return false;
+    }
+    if (type === 'FUNDS' && (amount <= 0 || reason === '')) {
+      setIsValidAmount(amount > 0)
+      setIsValidReason(reason !== '')
+      return false;
+    }
+    if (type === 'IN HOME' && (inHomeType === '' || description === '')) {
+      setIsValidInHomeType(inHomeType !== '')
+      setIsValidDescription(description !== '')
+    }
+    if ((type === 'PETS' || type === 'OTHER') && description === '') {
+      setIsValidDescription(description !== '')
+    }
+
+    setValidForm(true);
+    return true;
+  }
+
+  const handleSubmit = async(e) => {
     const form = e.currentTarget;
-    if (form.checkValidity() === false) {
+    if (!isValid()) {
+      setValidForm(false);
       e.preventDefault();
       e.stopPropagation();
     }
 
     setValidated(true);
+    let data = {
+      name,
+      region: 'ALBANY CORVALLIS PHILOMATH',   // until more regions are supported
+      role,
+      title: title === '' ? 'N/A' : title,
+      agency: agency === '' ? 'N/A' : agency,
+      jurisdiction: jurisdiction === '' ? 'N/A' : jurisdiction,
+      email,
+      type,
+      neededBy: neededByDate,
+      public: isPublic
+    }
+    if (type === 'GROCERY') {
+      data.details = {
+        items,
+        allergies,
+        additionalInfo,
+      }
+    } else if (type === 'FUNDS') {
+      data.details = {
+        amount,
+        reason,
+        additionalInfo,
+      }
+    } else if (type === 'IN HOME') {
+      data.details = {
+        serviceType: inHomeType,
+        description,
+        frequency,
+        additionalInfo,
+      }
+    } else if (type === 'PETS') {
+      data.details = {
+        description,
+        frequency,
+        additionalInfo,
+      }
+    } else if (type === 'OTHER') {
+      data.details = {
+        description,
+        additionalInfo,
+      }
+    } else {
+      data.details = null
+    }
+    axios.post('157.245.162.43:5000/request/create', data)
+      .then((response) => {
+        alert(response.data.msg);
+      })
+      .catch((error) => {
+        console.log(error);
+        alert('We\'re sorry! We encountered an issue saving your request! Please try again soon or email us at crcpnw@gmail.com.');
+      });
   }
 
   return (
@@ -56,7 +163,7 @@ const App = () => {
       <div style={{padding: '1em', textAlign: 'center'}}>
         <small>DISCLAIMER: At this time, the CRC is only able to fulfill requests for Linn and Benton counties in Oregon. We are actively working on our ability to fulfill requests in other regions of the Pacific Northwest!</small>
       </div>
-      <Form noValidate validated={validated} onSubmit={handleSubmit}>
+      <Form validated={validated} onSubmit={handleSubmit}>
         <Form.Group as={Row} controlId='rrName'>
           <Form.Label column sm={3}>
             Name:
@@ -199,6 +306,7 @@ const App = () => {
                       type='number'
                       placeholder='E.g. 100.00'
                       label='amount'
+                      defaultValue={5.00}
                       onChange={e => setAmount(e.target.value)}/>
                   </InputGroup>
                 </Col>
@@ -281,7 +389,7 @@ const App = () => {
                     name='rfFrequencyRadios'
                     value='ONE TIME'
                     id='rfFrequencyOneTime'
-                    selected
+                    checked
                     onSelect={e => setFrequency(e.target.value)} />
                   <Form.Check
                     type='radio'
@@ -344,14 +452,14 @@ const App = () => {
                     label='Everyone'
                     name='rfVisibilityRadios'
                     id='rfVisibilityEveryone'
-                    selected
-                    onSelect={e => setIsPublic(true)} />
+                    checked
+                    onCheck={e => setIsPublic(true)} />
                   <Form.Check
                     type='radio'
                     label='CRC Administrators Only'
                     name='rfVisibilityRadios'
                     id='rfVisibilityMods'
-                    onSelect={e => setIsPublic(false)} />
+                    onCheck={e => setIsPublic(false)} />
                 </Col>
               </Form.Group>
             </fieldset>

@@ -47,7 +47,7 @@ class RecChannel(Resource):
                         recommendedChannels[ch['name']] = ch['weight']
             except Exception:
                 returned_data = {'msg': '[ERROR] There was an error parsing the questionnaire responses.'}
-                return 
+                return
         returned_data = {
             'msg': '[SUCCESS] Returned recommended channels.',
             'channels': recommendedChannels.keys()
@@ -70,8 +70,10 @@ class CreateRequest(Resource):
         roleValue = request.form.get('role')
         email = request.form.get('email')
         phone = request.form.get('phone')
-        requestTypeValue = request.form.get('request_type')
+        requestTypeValue = request.form.get('type')
         details = request.form.get('details')
+        neededBy = request.form.get('neededBy')
+        public = int(request.form.get('public'))
 
         regions = [e for e in Region]
         roles = [e for e in Role]
@@ -79,26 +81,29 @@ class CreateRequest(Resource):
 
         if email == '':
             email = None
-        
+
         if phone == '':
             phone = None
 
         region = [r for r in regions if r == regionValue].pop()
         role = [r for r in roles if r == roleValue].pop()
         requestType = [r for r in requestTypes if r == requestTypeValue].pop()
-        
+
         status = Status.OPEN
         dateOpened = datetime.now()
 
-        db.cursor.execute("INSERT INTO request (name, region, role, email, phone, request_type, details, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING rID", (name, region, role, email, phone, requestType, details, status, dateOpened))
+        db.cursor.execute("INSERT INTO request (name, region, role, title, agency, jurisdiction, email, phone, request_type, details, neededBy, public, status, dateOpened) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %s, %s) RETURNING rID", (name, region, role, title, agency, jurisdiction, email, phone, requestType, details, neededBy, public, status, dateOpened))
         db.conn.commit()
-        
+
         results = db.cursor.fetchall()
         for row in results:
             rID = row.pop()
             print("New request ID: %s" % (rID))
-        
-        return {'msg': '[SUCCESS] The request has been recorded! rID = %s' % (rID)}
+
+        return {
+            'console_msg': '[SUCCESS] The request has been recorded! rID = %s' % (rID),
+            'msg': 'Thanks for reaching out! Your request has been submitted!',
+        }
 
 '''
 ADDVOLUNTEERTOREQUEST ENDPOINT
