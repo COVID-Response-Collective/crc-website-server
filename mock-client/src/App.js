@@ -164,58 +164,71 @@ const App = () => {
         <small>DISCLAIMER: At this time, the CRC is only able to fulfill requests for Linn and Benton counties in Oregon. We are actively working on our ability to fulfill requests in other regions of the Pacific Northwest!</small>
       </div>
       <Form validated={validated} onSubmit={handleSubmit}>
-        <Form.Group as={Row} controlId='rrName'>
-          <Form.Label column sm={3}>
-            Name:
-            <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-          </Form.Label>
-          <Col sm={9}>
+        <Form.Group controlId='rrName'>
+          <InputGroup>
+            <InputGroup.Prepend>
+              <InputGroup.Text id='rfNAmePrepend'>
+                Name:
+                <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+              </InputGroup.Text>
+            </InputGroup.Prepend>
             <Form.Control
               required
               type='text'
               placeholder='E.g. John Doe'
               label='firstname'
               onChange={e => setName(e.target.value)}/>
-          </Col>
+          </InputGroup>
           <Form.Control.Feedback type='invalid'>
             Please enter your name.
           </Form.Control.Feedback>
         </Form.Group>
-
-        <Form.Group as={Row} controlId='rfEmail'>
-          <Form.Label required column sm={3}>
-            Email Address:
-            <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-          </Form.Label>
-          <Col sm={9}>
-            <Form.Control
-              required
-              type='email'
-              placeholder='E.g. me@example.com'
-              label='email'
-              onChange={e => setEmail(e.target.value)}/>
+        <Form.Row>
+          <Col>
+            <Form.Group controlId='rfEmail'>
+              <InputGroup>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfEmailPrepend'>
+                    Email:
+                    <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
+                <Form.Control
+                  required
+                  type='email'
+                  placeholder='E.g. me@example.com'
+                  label='email'
+                  onChange={e => setEmail(e.targetValue)}/>
+              </InputGroup>
+              <Form.Control.Feedback type='invalid'>
+                Please enter a valid email address.
+              </Form.Control.Feedback>
+            </Form.Group>
           </Col>
-          <Form.Control.Feedback type='invalid'>
-            Please enter a valid email address.
-          </Form.Control.Feedback>
-        </Form.Group>
-        <Form.Group as={Row} controlId='rfPhone'>
-          <Form.Label column sm={3}>
-            Phone Number:
-          </Form.Label>
-          <Col sm={9}>
-            <Form.Control
-              placeholder='E.g. (541) 555-5555'
-              label='phone'
-              onChange={e => setPhone(e.target.value)}/>
+          <Col>
+            <Form.Group controlId='rfPhone'>
+              <InputGroup>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfPhonePrepend'>
+                    Phone:
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
+                <Form.Control
+                  placeholder='E.g. (541) 555-5555'
+                  label='phone'
+                  onChange={e => setPhone(e.target.value)}/>
+              </InputGroup>
+            </Form.Group>
           </Col>
-        </Form.Group>
-        <Form.Group as={Row} controlId='rfRole'>
-          <Form.Label required column sm={3}>
-            I am a:
-            <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-          </Form.Label>
-          <Col sm={9}>
+        </Form.Row>
+        <Form.Group controlId='rfRole'>
+          <InputGroup>
+            <InputGroup.Prepend>
+              <InputGroup.Text id='rfRolePrepend'>
+                I am a:
+                <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+              </InputGroup.Text>
+            </InputGroup.Prepend>
             <Form.Control
               required
               as='select'
@@ -226,17 +239,19 @@ const App = () => {
               <option value='COMM MEMBER'>Community Member</option>
               <option value='EM PROF'>Emergency Professional</option>
             </Form.Control>
-          </Col>
+          </InputGroup>
           <Form.Control.Feedback type='invalid'>
             Please select one.
           </Form.Control.Feedback>
         </Form.Group>
-        <Form.Group as={Row} controlId='rfType'>
-          <Form.Label column sm={3}>
-            I need help with:
-            <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-          </Form.Label>
-          <Col sm={9}>
+        <Form.Group controlId='rfType'>
+          <InputGroup>
+            <InputGroup.Prepend>
+              <InputGroup.Text id='rfTypePrepend'>
+                I need help with:
+                <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+              </InputGroup.Text>
+            </InputGroup.Prepend>
             <Form.Control
               required
               as='select'
@@ -250,80 +265,85 @@ const App = () => {
               <option value='PETS'>Pet Services</option>
               <option value='OTHER'>Other (Please Describe)</option>
             </Form.Control>
-          </Col>
+          </InputGroup>
           <Form.Control.Feedback type='invalid'>
             Please select a request type.
           </Form.Control.Feedback>
         </Form.Group>
         {type === 'GROCERY' && (
           <div>
-            <Form.Group as={Row} controlId='rfGroceryList'>
-              <Form.Label column sm={3}>
-                Grocery List:
-                <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-              </Form.Label>
-              <Col sm={9}>
+            <Form.Group controlId='rfGroceryList'>
+              <InputGroup>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfGroceryListPrepend'>
+                    Grocery List:
+                    <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
                 <Form.Control
                   required
                   as='textarea'
                   placeholder='E.g. 1% milk (2), Sourdough bread (1 loaf)'
                   label='grocery_list'
                   onChange={e => setItems(e.target.value)}/>
-              </Col>
+              </InputGroup>
               <Form.Control.Feedback type='invalid'>
                 Please enter your grocery list.
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group as={Row} controlId='rfAllergies'>
-              <Form.Label column sm={3}>
-                Allergies:
-              </Form.Label>
-              <Col sm={9}>
+            <Form.Group controlId='rfAllergies'>
+              <InputGroup>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfAllergiesPrepend'>
+                    Allergies:
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
                 <Form.Control
                   as='textarea'
                   placeholder='E.g. peanuts'
                   label='allergies'
                   onChange={e => setAllergies(e.target.value)}/>
-              </Col>
+              </InputGroup>
             </Form.Group>
           </div>
         )}
         {type === 'FUNDS' && (
           <div>
-              <Form.Group as={Row} controlId='rfFundAmount'>
-                <Form.Label column sm={3}>
-                  How much do you need?
-                  <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-                </Form.Label>
-                <Col sm={9} style={{verticalAlign: 'middle'}}>
-                  <InputGroup>
-                    <InputGroup.Prepend>
-                      <InputGroup.Text id='rfAmountPrepend'>
-                        $
-                      </InputGroup.Text>
-                    </InputGroup.Prepend>
-                    <Form.Control
-                      type='number'
-                      placeholder='E.g. 100.00'
-                      label='amount'
-                      defaultValue={5.00}
-                      onChange={e => setAmount(e.target.value)}/>
-                  </InputGroup>
-                </Col>
-              </Form.Group>
-            <Form.Group as={Row} controlId='rfFundReason'>
-              <Form.Label column sm={3}>
-                What do you need the funds for?:
-                <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-              </Form.Label>
-              <Col sm={9}>
+            <Form.Group controlId='rfFundAmount'>
+              <InputGroup>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfFundAmountPrepend'>
+                    How much do you need?
+                    <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfFundDollarPrepend'>
+                    $
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
+                <Form.Control
+                  type='number'
+                  placeholder='E.g. 100, 49.50'
+                  label='amount'
+                  onChange={e => setAmount(e.target.value)}/>
+              </InputGroup>
+            </Form.Group>
+            <Form.Group controlId='rfFundReason'>
+              <InputGroup>
+                <InputGroup.Prepend>
+                  <InputGroup.Text id='rfFundReasonPrepend'>
+                    What do you need the funds for?:
+                    <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+                  </InputGroup.Text>
+                </InputGroup.Prepend>
                 <Form.Control
                   required
                   as='textarea'
                   placeholder='E.g. Rent, paying for utilities'
                   label='reason'
                   onChange={e => setReason(e.target.value)}/>
-              </Col>
+              </InputGroup>
               <Form.Control.Feedback type='invalid'>
                 Please tell us why you need these funds.
               </Form.Control.Feedback>
@@ -331,12 +351,14 @@ const App = () => {
           </div>
         )}
         {type === 'IN HOME' && (
-          <Form.Group as={Row} controlId='rfInHomeServiceType'>
-            <Form.Label column sm={3}>
-              What kind of in-home request?:
-              <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-            </Form.Label>
-            <Col sm={9}>
+          <Form.Group controlId='rfInHomeServiceType'>
+            <InputGroup>
+              <InputGroup.Prepend>
+                <InputGroup.Text id='rfInHomeServiceTypePrepend'>
+                  What kind of in-home request?:
+                  <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+                </InputGroup.Text>
+              </InputGroup.Prepend>
               <Form.Control
                 required
                 as='select'
@@ -349,26 +371,28 @@ const App = () => {
                 <option value='HOUSEKEEPING'>Housekeeping</option>
                 <option value='OTHER'>Other (Please Describe)</option>
               </Form.Control>
-            </Col>
+            </InputGroup>
             <Form.Control.Feedback type='invalid'>
               Please select the type of service you need.
             </Form.Control.Feedback>
           </Form.Group>
         )}
         {(type === 'IN HOME' || type === 'PETS' || type === 'OTHER') && (
-          <Form.Group as={Row} controlId='rfDescription'>
-            <Form.Label column sm={3}>
-              Please describe the service you need.
-              <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
-            </Form.Label>
-            <Col sm={9}>
+          <Form.Group controlId='rfDescription'>
+            <InputGroup>
+              <InputGroup.Prepend>
+                <InputGroup.Text id='rfDescriptionPrepend'>
+                  Please describe the service you need.
+                  <sup style={{color: 'red', fontWeight: 'bold'}}>*</sup>
+                </InputGroup.Text>
+              </InputGroup.Prepend>
               <Form.Control
                 required
                 as='textarea'
                 placeholder='Type here...'
                 label='description'
                 onChange={e => setDescription(e.target.value)} />
-            </Col>
+            </InputGroup>
             <Form.Control.Feedback type='invalid'>
               Please describe the service you need.
             </Form.Control.Feedback>
